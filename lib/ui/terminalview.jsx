@@ -1,6 +1,7 @@
 var React           = require('react');
 var utils           = require('../utils');
 var log_fetcher     = require('./log-fetcher.js');
+var ansi_up         = require('./ansi_up.js');
 
 /** Display terminal output */
 var TerminalView = React.createClass({
@@ -164,7 +165,9 @@ var TerminalView = React.createClass({
             <div className="buffer" ref="buffer">
             {
                 frame.map(function(line){
-                    return <div key={start++}>{line}</div>;
+                    var newline = ansi_up.ansi_to_html(line);
+                    // return <div key={start++}>{(line)}</div>;
+                    return <div key={start++} dangerouslySetInnerHTML={{__html: newline}}></div>;
                 })
             }
             </div>
