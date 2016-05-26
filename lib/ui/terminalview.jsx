@@ -159,7 +159,7 @@ var TerminalView = React.createClass({
     var start = this.state.lines.length - this.state.fromBottom - this.props.rows;
     if(start < 0) start = 0;
     var frame = this.state.lines.slice(start, start + this.props.rows);
-    console.log('frame',frame);
+    // console.log('frame',frame);
     var left = this.props.rows - frame.length; // number of padding divs
     while(left--) frame.push('');
     return <div className="viewer" onWheel={this.onMouseWheel}>
