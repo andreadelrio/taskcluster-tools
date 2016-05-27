@@ -9,6 +9,9 @@ module.exports = [
   'lib/layout.less',
   'lib/layout.jsx',
 
+  // Log
+  'lib/ui/log-fetcher.js',
+
   // Landing page
   'index.jade',
   'landingpage.jsx',

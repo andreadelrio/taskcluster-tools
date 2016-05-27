@@ -61,7 +61,6 @@ var TerminalView = React.createClass({
   /* Communicate with the worker */
   onData(e){
     var response = e.data;
-
     // Write data to term if there is any data
     if (response.data){
       var newFromBottom = this.state.fromBottom;
@@ -69,6 +68,8 @@ var TerminalView = React.createClass({
         // we don't expect the data to get shrunk
         // since it's a log, it can only grow
         newFromBottom += response.data.length - this.state.lines.length;
+        // console.log('response.data.length',response.data.length);
+        // console.log('this.state.lines.length',this.state.lines.length);
       }
       this.setState({
         lines : response.data,
@@ -102,8 +103,7 @@ var TerminalView = React.createClass({
 
   scrollbarMargin(){
     if(!this.refs.buffer) return 0;
-    var ratio = (this.state.lines.length - this.state.fromBottom - this.props.rows)
-          / this.state.lines.length;
+    var ratio = (this.state.lines.length - this.state.fromBottom - this.props.rows) / this.state.lines.length;
     return ratio * (this.refs.buffer.offsetHeight - this.scrollbarHeight());
   },
 
