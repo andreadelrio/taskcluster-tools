@@ -1,7 +1,10 @@
 var React           = require('react');
 var utils           = require('../utils');
-var log_fetcher     = require('./log-fetcher.js');
+// var log_fetcher     = require('./log-fetcher.js');
 var ansi_up         = require('ansi_up');
+var work = require('webworkify');
+ 
+// var log_fetcher = work(require('./log-fetcher.js'));
 
 /** Display terminal output */
 var TerminalView = React.createClass({
@@ -52,8 +55,9 @@ var TerminalView = React.createClass({
     }
 
     // Open a new request
-    this.dataOffset = 0;
-    this.worker = new Worker(log_fetcher);
+    this.dataOffset = 0;  
+    // this.worker = new Worker(log_fetcher);
+    this.worker = work(require('./log-fetcher.js'));
     this.worker.addEventListener('message', this.onData);
     this.worker.postMessage({url: this.props.url, cols: this.props.cols});
   },
@@ -63,13 +67,12 @@ var TerminalView = React.createClass({
     var response = e.data;
     // Write data to term if there is any data
     if (response.data){
-      var newFromBottom = this.state.fromBottom;
+      // var newFromBottom = this.state.fromBottom;
+      var newFromBottom = 0;
       if(!this.props.scrollDown){
         // we don't expect the data to get shrunk
         // since it's a log, it can only grow
         newFromBottom += response.data.length - this.state.lines.length;
-        // console.log('response.data.length',response.data.length);
-        // console.log('this.state.lines.length',this.state.lines.length);
       }
       this.setState({
         lines : response.data,
@@ -98,6 +101,7 @@ var TerminalView = React.createClass({
     var ratio = this.props.rows / this.state.lines.length;
     if(ratio > 1) ratio = 1;
     var height = ratio * this.refs.buffer.offsetHeight;
+    // console.log('scrollbarHeight');
     return Math.max(height, 10);
   },
 
@@ -105,6 +109,7 @@ var TerminalView = React.createClass({
     if(!this.refs.buffer) return 0;
     var ratio = (this.state.lines.length - this.state.fromBottom - this.props.rows) / this.state.lines.length;
     return ratio * (this.refs.buffer.offsetHeight - this.scrollbarHeight());
+    // console.log('scrollbarMargin');
   },
 
   scrollbarSet(newState){
@@ -113,19 +118,25 @@ var TerminalView = React.createClass({
     newState = Math.min(this.state.lines.length - this.props.rows, newState);
     if(newState != this.state.fromBottom)
       this.setState({fromBottom: newState});
+    // console.log('scrollbarSet');
+    // console.log('newState',newState);
   },
 
   scrollbarMove(dist){
+    // console.log('scrollbarMove');
     this.scrollbarSet(this.state.fromBottom - dist);
+    // console.log(this.state.fromBottom, '-', dist);
   },
 
   onMouseWheel(e){
     e.preventDefault();
+    // console.log('onMouseWheel - Y', Math.sign(e.deltaY));
     this.scrollbarMove(Math.sign(e.deltaY));
   },
 
   onMouseMove(e){
     if(this.dragging){
+      // console.log('we dragging');
       var diff = e.pageY - this.startY;
       var space = this.refs.buffer.offsetHeight;
       var margin = this.margin + diff;
@@ -158,10 +169,14 @@ var TerminalView = React.createClass({
   render(){
     var start = this.state.lines.length - this.state.fromBottom - this.props.rows;
     if(start < 0) start = 0;
-    var frame = this.state.lines.slice(start, start + this.props.rows);
-    // console.log('frame',frame);
-    var left = this.props.rows - frame.length; // number of padding divs
-    while(left--) frame.push('');
+    // var frame = this.state.lines.slice(start, start + this.props.rows);
+    if (this.state.lines.length < 40) {
+      var frame = this.state.lines.slice(start, start + this.props.rows);
+    } else {
+      var frame = this.state.lines.slice(start + 15, start + this.props.rows);
+    }
+    // var left = this.props.rows - frame.length; // number of padding divs
+    // while(left--) frame.push('');
     return <div className="viewer" onWheel={this.onMouseWheel}>
       <div className="buffer" ref="buffer">
       {
@@ -176,7 +191,7 @@ var TerminalView = React.createClass({
         height: this.scrollbarHeight(),
         marginTop: this.scrollbarMargin()
         }} ref="scrollbar"/>
-    </div>;
+      </div>;
   }
 });
 
