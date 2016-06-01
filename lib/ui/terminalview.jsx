@@ -1,10 +1,8 @@
 var React           = require('react');
 var utils           = require('../utils');
-// var log_fetcher     = require('./log-fetcher.js');
 var ansi_up         = require('ansi_up');
 var work = require('webworkify');
  
-// var log_fetcher = work(require('./log-fetcher.js'));
 
 /** Display terminal output */
 var TerminalView = React.createClass({
@@ -56,7 +54,6 @@ var TerminalView = React.createClass({
 
     // Open a new request
     this.dataOffset = 0;  
-    // this.worker = new Worker(log_fetcher);
     this.worker = work(require('./log-fetcher.js'));
     this.worker.addEventListener('message', this.onData);
     this.worker.postMessage({url: this.props.url, cols: this.props.cols});
@@ -101,7 +98,6 @@ var TerminalView = React.createClass({
     var ratio = this.props.rows / this.state.lines.length;
     if(ratio > 1) ratio = 1;
     var height = ratio * this.refs.buffer.offsetHeight;
-    // console.log('scrollbarHeight');
     return Math.max(height, 10);
   },
 
@@ -109,7 +105,6 @@ var TerminalView = React.createClass({
     if(!this.refs.buffer) return 0;
     var ratio = (this.state.lines.length - this.state.fromBottom - this.props.rows) / this.state.lines.length;
     return ratio * (this.refs.buffer.offsetHeight - this.scrollbarHeight());
-    // console.log('scrollbarMargin');
   },
 
   scrollbarSet(newState){
@@ -118,25 +113,19 @@ var TerminalView = React.createClass({
     newState = Math.min(this.state.lines.length - this.props.rows, newState);
     if(newState != this.state.fromBottom)
       this.setState({fromBottom: newState});
-    // console.log('scrollbarSet');
-    // console.log('newState',newState);
   },
 
   scrollbarMove(dist){
-    // console.log('scrollbarMove');
     this.scrollbarSet(this.state.fromBottom - dist);
-    // console.log(this.state.fromBottom, '-', dist);
   },
 
   onMouseWheel(e){
     e.preventDefault();
-    // console.log('onMouseWheel - Y', Math.sign(e.deltaY));
     this.scrollbarMove(Math.sign(e.deltaY));
   },
 
   onMouseMove(e){
     if(this.dragging){
-      // console.log('we dragging');
       var diff = e.pageY - this.startY;
       var space = this.refs.buffer.offsetHeight;
       var margin = this.margin + diff;
@@ -169,21 +158,23 @@ var TerminalView = React.createClass({
   render(){
     var start = this.state.lines.length - this.state.fromBottom - this.props.rows;
     if(start < 0) start = 0;
-    // var frame = this.state.lines.slice(start, start + this.props.rows);
-    if (this.state.lines.length < 40) {
+    if ((this.state.lines.length < 40) || (this.state.lines.slice(start, start + this.props.rows)[0] == this.state.lines[0])) {
       var frame = this.state.lines.slice(start, start + this.props.rows);
     } else {
       var frame = this.state.lines.slice(start + 15, start + this.props.rows);
     }
-    // var left = this.props.rows - frame.length; // number of padding divs
-    // while(left--) frame.push('');
     return <div className="viewer" onWheel={this.onMouseWheel}>
       <div className="buffer" ref="buffer">
       {
         frame.map(function(line){
-          var newline = ansi_up.ansi_to_html(line);
-          // return <div key={start++}>{(line)}</div>;
-          return <div key={start++} dangerouslySetInnerHTML={{__html: newline}}></div>;
+          // Check if there are any ansi colors/styles
+          var ansi_chars = line.match(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g);
+          if (ansi_chars != null) {
+          var new_line = ansi_up.ansi_to_html(line);
+          return <div key={start++} dangerouslySetInnerHTML={{__html: new_line}}></div>;
+          } else {
+          return <div key={start++}>{(line)}</div>;
+          };
         })
       }
       </div>
