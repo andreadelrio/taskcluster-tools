@@ -2,6 +2,7 @@ var React           = require('react');
 var utils           = require('../utils');
 var ansi_up         = require('ansi_up');
 var work = require('webworkify');
+var ansiRegex = require('ansi-regex');
  
 
 /** Display terminal output */
@@ -18,7 +19,6 @@ var TerminalView = React.createClass({
   getDefaultProps(){
     return {
       url:            undefined,  // No URL to display at this point
-      cols: 140,
       rows: 40,
       scrollDown: false,
     };
@@ -26,7 +26,7 @@ var TerminalView = React.createClass({
 
   getInitialState(){
     return {
-      lines: ['one', 'two', 'three', 'testing...'],
+      lines: ['Loading log...'],
       fromBottom: 0,
     };
   },
@@ -56,7 +56,7 @@ var TerminalView = React.createClass({
     this.dataOffset = 0;  
     this.worker = work(require('./log-fetcher.js'));
     this.worker.addEventListener('message', this.onData);
-    this.worker.postMessage({url: this.props.url, cols: this.props.cols});
+    this.worker.postMessage({url: this.props.url});
   },
 
   /* Communicate with the worker */
@@ -158,22 +158,22 @@ var TerminalView = React.createClass({
   render(){
     var start = this.state.lines.length - this.state.fromBottom - this.props.rows;
     if(start < 0) start = 0;
-    if ((this.state.lines.length < 40) || (this.state.lines.slice(start, start + this.props.rows)[0] == this.state.lines[0])) {
+    //Check if the log has less lines than the number of rows or if we are displaying the beggining of the log
+    if ((this.state.lines.length < this.props.rows) || (this.state.lines[start] == this.state.lines[0])) {
       var frame = this.state.lines.slice(start, start + this.props.rows);
     } else {
-      var frame = this.state.lines.slice(start + 15, start + this.props.rows);
+      var frame = this.state.lines.slice(start + 15, start + this.props.rows + 15);
     }
     return <div className="viewer" onWheel={this.onMouseWheel}>
       <div className="buffer" ref="buffer">
       {
         frame.map(function(line){
           // Check if there are any ansi colors/styles
-          var ansi_chars = line.match(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g);
-          if (ansi_chars != null) {
-          var new_line = ansi_up.ansi_to_html(line);
-          return <div key={start++} dangerouslySetInnerHTML={{__html: new_line}}></div>;
+          if (ansiRegex().test(line) === true) {
+            var new_line = ansi_up.ansi_to_html(line);
+            return <div key={start++} dangerouslySetInnerHTML={{__html: new_line}}></div>;
           } else {
-          return <div key={start++}>{(line)}</div>;
+            return <div key={start++}>{(line)}</div>;
           };
         })
       }
