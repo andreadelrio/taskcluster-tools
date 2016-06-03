@@ -1,8 +1,8 @@
 var React           = require('react');
 var utils           = require('../utils');
 var ansi_up         = require('ansi_up');
-var work = require('webworkify');
-var ansiRegex = require('ansi-regex');
+var work            = require('webworkify');
+var ansiRegex       = require('ansi-regex');
  
 
 /** Display terminal output */
@@ -64,7 +64,6 @@ var TerminalView = React.createClass({
     var response = e.data;
     // Write data to term if there is any data
     if (response.data){
-      // var newFromBottom = this.state.fromBottom;
       var newFromBottom = 0;
       if(!this.props.scrollDown){
         // we don't expect the data to get shrunk
