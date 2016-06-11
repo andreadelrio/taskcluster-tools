@@ -297,14 +297,21 @@ var createTaskClusterMixin = (options) => {
       if (err.statusCode) {
         code = err.statusCode + ': ';
       }
+      var loggedOut403 = !this.state.credentials && code == "403: ";
       return (
-        <bs.Alert bsStyle="danger">
+        loggedOut403 ? (
+        <bs.Alert bsStyle="info"> 
+          <strong>Please sign in and try again</strong>  
+        </bs.Alert>
+        ) : ( 
+        <bs.Alert bsStyle="danger"> 
           <strong>
             {code}&nbsp;
             {err.message || 'Unknown Error'}
           </strong>
           {body}
         </bs.Alert>
+        )
       );
     },
 
