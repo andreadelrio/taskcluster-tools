@@ -163,17 +163,11 @@ var TerminalView = React.createClass({
   },
 
   render() {
-    // console.log(this.state.lines)
     var start = this.state.lines.length - this.state.fromBottom - this.props.rows;
     if (start < 0) {
       start = 0;
     }
-    var paddingRows = 0;
-    // Check if the log has less lines than the number of rows or if we are displaying the beggining of the log
-    // if (this.props.rows <= this.state.lines.length && this.state.lines[start] !== this.state.lines[0]) {
-    //   paddingRows = 15;
-    // }
-    var frame = this.state.lines.slice(start + paddingRows, start + this.props.rows + paddingRows);
+    var frame = this.state.lines.slice(start, start + this.props.rows);
     return <div className="viewer" onWheel={this.onMouseWheel}>
       <div className="buffer" ref="buffer">
       {
@@ -182,8 +176,8 @@ var TerminalView = React.createClass({
           if (ansiRegex().test(line)) {
             var new_line = ansi_up.ansi_to_html(line);
             return <div key={start++} dangerouslySetInnerHTML={{__html: new_line}}></div>;
-          // } else if (line.match(/  /g) && line.match(/  /g).length > 0) {
-              // return <div className="pre-white" key={start++}>{(line)}</div>;
+          } else if (line.match(/  /g) && line.match(/  /g).length > 0) {
+              return <div className="pre-white" key={start++}>{(line)}</div>;
           } else {
             return <div key={start++}>{(line)}</div>;
           };
